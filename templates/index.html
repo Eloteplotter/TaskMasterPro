@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <style>
+        body {
+            padding-top: 70px; 
+        }
+        .table-container {
+            max-width: 800px;
+            margin: auto;
+        }
+        .btn-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg bg-body-tertiary fixed-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">Navbar</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto"> 
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="#">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Tasks done</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav"> 
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Log out</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-5 table-container">
+        <table id="table" class="display table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Title</th>
+                    <th>Assignment</th>
+                    <th>Start time</th>
+                    <th>Finish time</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for block in blocks %}
+                    <tr>
+                        <td>{{ block["id"] }}</td>
+                        <td>{{ block["titulo"] }}</td>
+                        <td class="text-break">{{ block["descripcion"] }}</td>
+                        <td>{{ block["tiempo_inicio"] }}</td>
+                        <td>{{ block["tiempo_final"] }}</td>
+                        <td>
+                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editModal{{ block["id"] }}">
+                                Editar
+                            </button>
+                        </td>
+                        <td>
+                          <form action="/delete" method="post">
+                              <input type="hidden" name="id" value="{{ row.id_notas }}">
+                              <button type="submit" class="btn btn-danger">Delete</button>
+                          </form>
+                      </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="btn-container">
+            <button type="button" class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#exampleModal">Agregar Nota</button>
+        </div>
+    </div>
+    
+    <!-- Modal de edición -->
+    {% for block in blocks %}
+    <div class="modal fade" id="editModal{{ block["id"] }}" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="editModalLabel">Editar Nota</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Formulario de edición dentro del modal -->
+                    <form action="/edit" method="post">
+                        <input type="hidden" name="id" value="{{ block["id"] }}">
+                        <div class="mb-3">
+                            <label for="editTitle" class="form-label">Título</label>
+                            <input type="text" class="form-control" id="editTitle" name="titulo" value="{{ block["titulo"] }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="editDescription" class="form-label">Descripción</label>
+                            <textarea class="form-control" id="editDescription" name="nota" rows="3">{{ block["descripcion"] }}</textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editStartTime" class="form-label">Hora de Inicio</label>
+                            <input type="text" class="form-control" id="editStartTime" name="star_time" value="{{ block["tiempo_inicio"] }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="editFinishTime" class="form-label">Hora de Finalización</label>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>  
+  <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.js"></script>
+</body>
+</html>
+
+
+
+
