@@ -1,5 +1,6 @@
 from flask import Flask, redirect, render_template, request, session, jsonify
 from flask_session import Session
+from flask_mail import Message, Mail
 from functools import wraps
 from werkzeug.security import check_password_hash, generate_password_hash
 from cs50 import SQL
@@ -23,7 +24,16 @@ app.config["TEMPLATES_AUTO_RELOAD"] = True
 app.config["SESSION_PERMANENT"] = False
 app.config['SECRET_KEY'] = 'super secret key'
 app.config["SESSION_TYPE"] = "filesystem"
+
+app.config['MAIL_SERVER']='sandbox.smtp.mailtrap.io'
+app.config['MAIL_PORT'] = 2525
+app.config['MAIL_USERNAME'] = '3134450fcbf405'
+app.config['MAIL_PASSWORD'] = 'a564b6ae708430'
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USE_SSL'] = False
+
 Session(app)
+mail =Mail(app)
 
 
 def login_required(f):
@@ -50,14 +60,18 @@ def registro():
         email = request.form.get("email")
         password = request.form.get("password")
         confirmation = request.form.get("confirmation")
-        #confirma la contrase;a 
+
+        error_name = "Try another username, please"
+        error_password = "passwords don't match" 
+
+        #confirma la contraseña
         if password != confirmation:
-            return "algo"
+            return render_template("registro.html", errorP=error_password)
         
         row = db.execute("SELECT * FROM users WHERE username = ?", username)
 
         if len(row) != 0:
-            return "eso significa que hay otro usuario con el mismo username"
+            return render_template("registro.html", errorN=error_name,)
         
         else:
             #se agrega el nuevo usario
@@ -72,6 +86,8 @@ def registro():
 def log_ing():
 
     session.clear()
+    
+    error = "Invalid credentials"
 
     if request.method == "GET":
         return render_template("login.html")
@@ -82,14 +98,17 @@ def log_ing():
        
 
         if not username or not password:
-            pass #por el momentoo, idea que ponga un mensaje en rojo que no coinciden las contra o algo asi
+            return render_template("login.html", error=error)
+        
 
         rows = db.execute('SELECT * FROM users WHERE username = (?)', username)
-        print(rows)
 
-        if  check_password_hash(rows[0]["password"], request.form.get("password")):
-            return "aqui un mensaje donde diga la contra o el username es erroneo"
+        if len(rows) == 0:
+            return render_template("login.html", error=error)
 
+        if  rows[0]["password"] != request.form.get("password"):
+            return render_template("login.html", error=error)
+        
         session["user_id"] = rows[0]["id"] 
 
         return redirect("/")
