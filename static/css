@@ -3,6 +3,6 @@
 content: "";
 flex: 1;
 height: 1px;
-background: #eeeeee5c;
-}
+background-color: aqua;
 
+}
