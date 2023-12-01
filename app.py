@@ -1,15 +1,24 @@
-from flask import Flask, redirect, render_template, request, session
+from flask import Flask, redirect, render_template, request, session, jsonify
 from flask_session import Session
 from functools import wraps
 from werkzeug.security import check_password_hash, generate_password_hash
 from cs50 import SQL
 from dotenv import load_dotenv
+import os
+import stripe
 
 load_dotenv()
 
-app =Flask(__name__)
+app =Flask(__name__,
+            static_url_path='',
+            static_folder='public')
 
+stripe.api_key = 'sk_test_51OIaagFn9mbqMEffBXHysIy5wlS80JE1gv6gA0I1sqBeeYF4wgM1cyLPocJ1QHb3IUpi144vH7WXikDDujhaZBvp00PEppd3LJ'
+STRIPE_PUBLIC_KEY = 'pk_test_51OIaagFn9mbqMEffZaiYD7IXCl0pPnnJSMTqlrTnPRq3E1B4MDE6SzkZKkxqsP2llY235EKYVKSlZOgdHK6A6oWB00g5wMLkkG'
+STRIPE_SECRET_KEY = "sk_test_51OIaagFn9mbqMEffBXHysIy5wlS80JE1gv6gA0I1sqBeeYF4wgM1cyLPocJ1QHb3IUpi144vH7WXikDDujhaZBvp00PEppd3LJ"
+STRIPE_WEBHOOK_SECRET = "whsec_28bf38ec3a12f91111a4a923d96543592c15bf74ec1a802a45253ddeda9c3646"
 
+YOUR_DOMAIN2 = 'http://localhost:5000'
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 app.config["SESSION_PERMANENT"] = False
 app.config['SECRET_KEY'] = 'super secret key'
@@ -148,3 +157,60 @@ def logout():
 
      session.clear()
      return redirect("/")
+
+
+# Stripe
+@app.route('/create-checkout-session', methods=["POST"])
+def create_checkout_session():
+    if request.method == "POST":
+        try:
+            checkout_session = stripe.checkout.Session.create(
+                line_items=[
+                    {
+                            "price_data": {
+                                "currency": 'usd',
+                                "product_data": {
+                                    "name": 'Taskmaster',
+                                },
+                                "unit_amount": 5000
+                            },
+                            "quantity": 1,
+                        },
+                ],
+                metadata={
+                        "product_id": 2,
+                        "user_id": 3,
+                        "quantity": 1
+                    },
+                mode="payment",
+                success_url=YOUR_DOMAIN2 + '/',
+                cancel_url=YOUR_DOMAIN2 + '/',
+            )
+           
+        except Exception as e:
+            return str(e)
+
+        return redirect(checkout_session.url, code=303)
+
+
+@app.route("/webhooks/stripe/", methods=["POST"])
+def webhooks():
+    payload = request.data.decode("utf-8")
+    received_sig = request.headers.get("Stripe-Signature", None)
+
+    try:
+        event = stripe.Webhook.construct_event(
+            payload, received_sig, STRIPE_WEBHOOK_SECRET
+        )
+    except ValueError:
+        print("Error while decoding event!")
+        return "Bad payload", 400
+    except stripe.error.SignatureVerificationError:
+        print("Invalid signature!")
+        return "Bad signature", 400
+
+    print(
+        "GG"
+    )
+
+    return "", 200
